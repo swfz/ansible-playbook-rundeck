@@ -1,0 +1,29 @@
+#loglevel.default is the default log level for jobs: ERROR,WARN,INFO,VERBOSE,DEBUG
+loglevel.default=INFO
+rdeck.base=/var/lib/rundeck
+
+#rss.enabled if set to true enables RSS feeds that are public (non-authenticated)
+rss.enabled=false
+rundeck.v14.rdbsupport=true
+# change hostname here
+#grails.serverURL=http://192.168.20.55/rundeck
+grails.serverURL=http://{{ rundeck.config.host }}/{{ rundeck.config.web_context }}
+dataSource.dbCreate = update
+#dataSource.url = jdbc:h2:file:/var/lib/rundeck/data/rundeckdb;MVCC=true;TRACE_LEVEL_FILE=4
+dataSource.url = jdbc:mysql://{{ rundeck.db.host }}/{{ rundeck.db.schema }}?autoReconnect=true
+dataSource.username = {{ rundeck.db.user }}
+dataSource.password = {{ rundeck.db.password }}
+dataSource.driverClassName=com.mysql.jdbc.Driver
+
+rundeck.projectsStorageType = db
+
+rundeck.config.storage.converter.1.type = jasypt-encryption
+rundeck.config.storage.converter.1.path = projects
+rundeck.config.storage.converter.1.config.password = mysecret
+
+rundeck.storage.provider.1.type = db
+rundeck.storage.provider.1.path = keys
+
+rundeck.storage.converter.1.type = jasypt-encryption
+rundeck.storage.converter.1.path = keys
+rundeck.storage.converter.1.config.password = mysecret

@@ -1,0 +1,5 @@
+[rundeck]
+10.0.121.13
+
+[all:vars]
+stage=sandbox

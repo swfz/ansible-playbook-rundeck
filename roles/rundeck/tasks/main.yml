@@ -1,0 +1,69 @@
+---
+- name: check rundeck repo
+  shell: rpm -qi rundeck-repo
+  register: exist_rundeck_repo
+  ignore_errors: yes
+  changed_when: false
+
+- name: install rundeck rpm
+  when: exist_rundeck_repo.stdout.find('is not installed') != -1
+  shell: rpm -Uvh "{{ rundeck.rpm }}"
+
+- name: install rundeck
+  yum: name=rundeck state=installed
+
+- name: install plugins. file copy
+  get_url: url={{ item.value.repo }} dest={{ rundeck.plugins.directory }}{{ item.value.filename }}
+  with_dict: rundeck.plugins.copyfile
+
+- name: check exist plugins
+  stat: path=/var/lib/rundeck/libext/{{ item.value.filename }}
+  register: exist_plugins
+  with_dict: rundeck.plugins.build
+
+- name: install plugins. require build
+  copy: src={{ item.value.filename }} dest=/var/lib/rundeck/libext/{{ item.value.filename }}
+  with_dict: rundeck.plugins.build
+
+# - name: install plugins. require build
+#   when: item.1.stat.exists == false
+#   git: repo={{ rundeck.plugins.build[item.0].repo }} dest=/tmp/{{ rundeck.plugins.build[item.0].directory }}
+#   with_together:
+#     - rundeck.plugins.build
+#     - exist_plugins.results
+#
+# - name: install plugins. build compileJava
+#   when: item.1.stat.exists == false
+#   shell: ./gradlew compileJava chdir=/tmp/{{ rundeck.plugins.build[item.0].directory }}
+#   with_together:
+#     - rundeck.plugins.build
+#     - exist_plugins.results
+#
+# - name: install plugins. build jar
+#   when: item.1.stat.exists == false
+#   shell: ./gradlew jar chdir=/tmp/{{ rundeck.plugins.build[item.0].directory }}
+#   with_together:
+#     - rundeck.plugins.build
+#     - exist_plugins.results
+#
+# - name: install plugins. mv jar
+#   when: item.1.stat.exists == false
+#   shell: mv /tmp/{{ rundeck.plugins.build[item.0].directory }}/build/libs/{{ rundeck.plugins.build[item.0].filename }} {{ rundeck.plugins.directory }}{{ rundeck.plugins.build[item.0].filename }}
+#   with_together:
+#     - rundeck.plugins.build
+#     - exist_plugins.results
+
+- name: rundeck-config.properties
+  template: src=rundeck-config.properties.j2 dest=/etc/rundeck/rundeck-config.properties
+
+- name: framework.properties
+  template: src=framework.properties.j2 dest=/etc/rundeck/framework.properties
+
+- name: profile
+  template: src=profile.j2 dest=/etc/rundeck/profile
+
+- include: mysql.yml
+
+- name: start rundeck
+  service: name=rundeckd state=running
+

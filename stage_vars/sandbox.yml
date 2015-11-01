@@ -1,0 +1,3 @@
+rundeck:
+  config:
+    host: example.com

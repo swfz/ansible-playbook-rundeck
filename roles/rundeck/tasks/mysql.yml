@@ -1,0 +1,21 @@
+- name: check exist jdbcdriver
+  stat: path=/var/lib/rundeck/exp/webapp/WEB-INF/lib/{{ rundeck.jdbcdriver.filename }}
+  register: exist_jdbcdriver
+
+- name: Download Oracle jdbcDriver
+  when: exist_jdbcdriver.stat.exists == false
+  shell: "curl -L  -H 'Cookie:oraclelicense=accept-classes-cookie' -o /var/lib/rundeck/exp/webapp/WEB-INF/lib/{{ rundeck.jdbcdriver.filename }} {{ rundeck.jdbcdriver.url }}"
+
+- name: install mysql python module
+  yum: name={{ item }} state=present
+  with_items:
+    - MySQL-python
+    - MySQL-python27
+
+- name: create database
+  mysql_db: name={{ rundeck.db.schema }} state=present encoding=utf8
+
+- name: create user
+  mysql_user: name={{ rundeck.db.user }} priv={{ rundeck.db.schema }}.*:ALL password={{ rundeck.db.password }} state=present
+
+

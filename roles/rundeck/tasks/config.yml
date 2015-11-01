@@ -1,0 +1,36 @@
+# - name: config. framework.properties. server.name
+#   replace: >
+#     dest=/etc/rundeck/framework.properties
+#     regexp=framework.server.name = localhost
+#     replace=framework.server.name = {{ rundeck.config.host  }}
+#     backup=yes
+
+# - name: config. framework.properties. server.hostname
+#   replace: >
+#     dest=/etc/rundeck/framework.properties
+#     regexp=framework.server.hostname = localhost
+#     replace=framework.server.hostname = {{ rundeck.config.host  }}
+#     backup=yes
+
+# - name: config. framework.properties. server.url
+#   replace: >
+#     dest=/etc/rundeck/framework.properties
+#     regexp=framework.server.url = http://localhost:4440
+#     replace=framework.server.url = http://{{ rundeck.config.host  }}:4440
+#     backup=yes
+
+    # regexp="-Drundeck.server.serverDir=/var/lib/rundeck \ "
+- name: config. profile. server.web.context
+  lineinfile: >
+    dest=/etc/rundeck/profile
+    state=present
+    line="        -Drundeck.server.serverDir=/var/lib/rundeck \ "
+    insertbefore="        -Dserver.web.context=/{{ rundeck.config.web_context }} \ "
+
+- name: config. rundeck-config.properties
+  replace: >
+    dest=/etc/rundeck/rundeck-config.properties
+    regexp=grails.serverURL=http://localhost:4440
+    replace=grails.serverURL=http://{{ rundeck.config.host }}/{{ rundeck.config.web_context }}
+
+
